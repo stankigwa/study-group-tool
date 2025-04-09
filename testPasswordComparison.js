@@ -1,7 +1,7 @@
-const bcrypt = require("bcrypt");
+const bcrypt = require("bcryptjs");
 
 const enteredPassword = "Wifi2020#"; // The password you want to test
-const storedHashedPassword = "$2b$10$GjlJS634U.miB9Zx0meDauXv8aYOzjCnCy6/Elu47EEc/xoHHkeGi"; // The hashed password from the database
+const storedHashedPassword = "$2a$10$GjlJS634U.miB9Zx0meDauXv8aYOzjCnCy6/Elu47EEc/xoHHkeGi"; // The hashed password from the database
 
 // Compare the entered password with the hashed password
 bcrypt.compare(enteredPassword, storedHashedPassword, (err, isMatch) => {

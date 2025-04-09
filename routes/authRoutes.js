@@ -21,14 +21,15 @@ router.post("/signup", async (req, res) => {
             return res.status(400).json({ message: "User already exists!" });
         }
 
-        // Create a new user without manually hashing the password
+        // Create a new user with the provided password (No manual hashing here)
         const newUser = new User({
             email: normalizedEmail,
-            password,
+            password: password, // Use plain password here
         });
 
         await newUser.save();
 
+        // Generate a token for the new user
         const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET, {
             expiresIn: "1h",
         });
@@ -58,11 +59,13 @@ router.post("/login", async (req, res) => {
             return res.status(400).json({ message: "Invalid credentials!" });
         }
 
-        const isMatch = await user.matchPassword(password);
+        // Compare the entered password with the stored hashed password using matchPassword method
+        const isMatch = await user.matchPassword(password); // Using the instance method defined in User.js
         if (!isMatch) {
             return res.status(400).json({ message: "Invalid credentials!" });
         }
 
+        // Generate a token for the logged-in user
         const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
             expiresIn: "1h",
         });
