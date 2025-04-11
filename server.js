@@ -5,6 +5,7 @@ require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
+const path = require("path"); // Required to handle static files
 const authRoutes = require("./routes/authRoutes"); // Import auth routes
 const protectedRoutes = require("./routes/protectedRoutes"); // Import protected routes
 const studyGroupRoutes = require("./routes/studyGroupRoutes"); // Import study group routes
@@ -41,6 +42,15 @@ app.use("/api/auth", authRoutes); // Handles /api/auth/signup and /api/auth/logi
 app.use("/api/protected", protectedRoutes); // Handles /api/protected/profile
 app.use("/api/studyGroups", studyGroupRoutes); // Handles study group routes like /api/studyGroups/create, join, leave, etc.
 app.use("/api/users", userRoutes); // Handles /api/users/profile and other user-related routes
+
+// Serve static files from the React app (production build)
+// Serve files from the 'client/build' directory
+app.use(express.static(path.join(__dirname, "client", "build")));  // __dirname refers to the directory where server.js is located
+
+// Catch-all route to serve the React app for any non-API route
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "client", "build", "index.html"));
+});
 
 // Global Error Handler (for unhandled errors)
 app.use((err, req, res, next) => {

@@ -4,32 +4,38 @@ const jwt = require("jsonwebtoken");
 
 const router = express.Router();
 
-if (!process.env.JWT_SECRET) {
-    throw new Error("JWT_SECRET is not defined in the environment variables");
-}
+// Helper to check if JWT_SECRET is set
+const checkJWTSecret = () => {
+    if (!process.env.JWT_SECRET) {
+        console.warn("⚠️ JWT_SECRET is not defined in environment variables.");
+        return false;
+    }
+    return true;
+};
 
 // Signup Route
 router.post("/signup", async (req, res) => {
+    if (!checkJWTSecret()) {
+        return res.status(500).json({ message: "Server misconfiguration: JWT_SECRET not set" });
+    }
+
     const { email, password } = req.body;
 
     try {
         const normalizedEmail = email.toLowerCase();
 
-        // Check if the user already exists
         const userExists = await User.findOne({ email: normalizedEmail });
         if (userExists) {
             return res.status(400).json({ message: "User already exists!" });
         }
 
-        // Create a new user with the provided password (No manual hashing here)
         const newUser = new User({
             email: normalizedEmail,
-            password: password, // Use plain password here
+            password: password,
         });
 
         await newUser.save();
 
-        // Generate a token for the new user
         const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET, {
             expiresIn: "1h",
         });
@@ -50,6 +56,10 @@ router.post("/signup", async (req, res) => {
 
 // Login Route
 router.post("/login", async (req, res) => {
+    if (!checkJWTSecret()) {
+        return res.status(500).json({ message: "Server misconfiguration: JWT_SECRET not set" });
+    }
+
     const { email, password } = req.body;
 
     try {
@@ -59,13 +69,11 @@ router.post("/login", async (req, res) => {
             return res.status(400).json({ message: "Invalid credentials!" });
         }
 
-        // Compare the entered password with the stored hashed password using matchPassword method
-        const isMatch = await user.matchPassword(password); // Using the instance method defined in User.js
+        const isMatch = await user.matchPassword(password);
         if (!isMatch) {
             return res.status(400).json({ message: "Invalid credentials!" });
         }
 
-        // Generate a token for the logged-in user
         const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
             expiresIn: "1h",
         });
